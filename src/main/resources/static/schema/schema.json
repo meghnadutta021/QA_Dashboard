@@ -1,0 +1,255 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "qa-dashboard/schema.json",
+  "title": "QA Dashboard Report",
+  "description": "Validates a single QA report JSON file for the QA Dashboard application. The report must have a meta block, a test_cases array, and a bugs array.",
+  "type": "object",
+
+  "required": ["meta", "test_cases", "bugs"],
+
+  "additionalProperties": true,
+
+  "properties": {
+
+    "_comment": {
+      "type": "string",
+      "description": "Optional human-readable comment. Delete before uploading — it is ignored by the validator."
+    },
+
+    "meta": {
+      "type": "object",
+      "description": "Metadata describing the test run: who ran it, on what product, on what date.",
+
+      "required": ["product", "platform", "module", "date"],
+      "additionalProperties": true,
+
+      "properties": {
+
+        "report_id": {
+          "type": "string",
+          "description": "Optional unique label for this report. Auto-generated from the filename if omitted.",
+          "examples": ["login-web-20260510"]
+        },
+
+        "product": {
+          "type": "string",
+          "description": "Product folder name. Must be fully lowercase and match the first subfolder under qa-data/ exactly.",
+          "pattern": "^[a-z0-9_-]+$",
+          "minLength": 1,
+          "examples": ["vantagefitness"]
+        },
+
+        "platform": {
+          "type": "string",
+          "description": "Platform folder name. Must be fully lowercase and match the second subfolder under qa-data/{product}/.",
+          "pattern": "^[a-z0-9_-]+$",
+          "minLength": 1,
+          "examples": ["web", "android", "ios"]
+        },
+
+        "module": {
+          "type": "string",
+          "description": "Module folder name. Must be fully lowercase and match the third subfolder and the report filename prefix.",
+          "pattern": "^[a-z0-9_-]+$",
+          "minLength": 1,
+          "examples": ["login", "payment", "checkout"]
+        },
+
+        "date": {
+          "type": "string",
+          "description": "Date the tests were run, in YYYYMMDD format (no dashes or slashes).",
+          "pattern": "^[0-9]{8}$",
+          "examples": ["20260510"]
+        },
+
+        "environment": {
+          "type": "string",
+          "description": "Optional. The environment under test.",
+          "examples": ["staging", "production", "dev", "uat"]
+        },
+
+        "tester": {
+          "type": "string",
+          "description": "Optional. Name of the person who executed the tests.",
+          "examples": ["Meghna Dutta"]
+        }
+
+      }
+    },
+
+    "test_cases": {
+      "type": "array",
+      "description": "All test cases executed in this run. May be an empty array [] if no tests were run.",
+      "minItems": 0,
+
+      "items": {
+        "type": "object",
+        "description": "A single test case with its outcome.",
+
+        "required": ["tc_id", "title", "steps", "expected", "actual", "priority", "status"],
+        "additionalProperties": true,
+
+        "properties": {
+
+          "tc_id": {
+            "type": "string",
+            "description": "Unique test case identifier within this file. Must not be duplicated.",
+            "minLength": 1,
+            "examples": ["TC-LOGIN-001"]
+          },
+
+          "scenario": {
+            "type": "string",
+            "description": "Optional. Broad feature area or user journey this test belongs to.",
+            "examples": ["User Authentication", "Session Management"]
+          },
+
+          "title": {
+            "type": "string",
+            "description": "Short human-readable description of what this test verifies.",
+            "minLength": 1,
+            "examples": ["Successful login with valid credentials"]
+          },
+
+          "precondition": {
+            "type": "string",
+            "description": "Optional. Required application state before the tester begins the steps.",
+            "examples": ["A user account exists with email tester@example.com"]
+          },
+
+          "steps": {
+            "type": "array",
+            "description": "Ordered list of actions the tester performs to execute this test.",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "description": "A single step instruction.",
+              "examples": ["Navigate to /login", "Enter valid credentials", "Click Submit"]
+            }
+          },
+
+          "expected": {
+            "type": "string",
+            "description": "What the application should do if it is working correctly.",
+            "minLength": 1,
+            "examples": ["User is redirected to the dashboard"]
+          },
+
+          "actual": {
+            "type": "string",
+            "description": "What the application actually did when the tester ran this test.",
+            "minLength": 1,
+            "examples": ["User was redirected to the dashboard"]
+          },
+
+          "priority": {
+            "type": "string",
+            "description": "Urgency level. P1 = critical (fix before release), P4 = low (cosmetic).",
+            "enum": ["P1", "P2", "P3", "P4"]
+          },
+
+          "status": {
+            "type": "string",
+            "description": "Outcome of running this test case.",
+            "enum": ["PASS", "FAIL", "SKIP", "BLOCKED"]
+          },
+
+          "notes": {
+            "type": "string",
+            "description": "Optional. Free-text observations from the tester — flakiness, environment quirks, etc.",
+            "examples": ["Reproducible 100% of the time on Chrome 124"]
+          }
+
+        }
+      }
+    },
+
+    "bugs": {
+      "type": "array",
+      "description": "All bugs discovered during this test run. May be an empty array [] if no bugs were found.",
+      "minItems": 0,
+
+      "items": {
+        "type": "object",
+        "description": "A single bug report.",
+
+        "required": ["bug_id", "tc_id", "title", "steps", "expected", "actual", "severity", "status"],
+        "additionalProperties": true,
+
+        "properties": {
+
+          "bug_id": {
+            "type": "string",
+            "description": "Unique bug identifier within this file.",
+            "minLength": 1,
+            "examples": ["BUG-LOGIN-001"]
+          },
+
+          "tc_id": {
+            "type": "string",
+            "description": "The tc_id of the test case that discovered this bug. Should match an existing tc_id in this file — if not, the bug is marked as an orphan on the dashboard.",
+            "minLength": 1,
+            "examples": ["TC-LOGIN-002"]
+          },
+
+          "title": {
+            "type": "string",
+            "description": "Short headline describing the bug.",
+            "minLength": 1,
+            "examples": ["Login returns HTTP 500 on invalid password"]
+          },
+
+          "description": {
+            "type": "string",
+            "description": "Optional. Longer explanation of what the bug is and when it occurs.",
+            "examples": ["When user enters wrong password, the server throws an unhandled exception..."]
+          },
+
+          "steps": {
+            "type": "array",
+            "description": "Step-by-step instructions to reproduce the bug.",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "examples": ["Go to /login", "Enter wrong password", "Submit form"]
+            }
+          },
+
+          "expected": {
+            "type": "string",
+            "description": "What the application should have done (the correct behaviour).",
+            "minLength": 1,
+            "examples": ["HTTP 401 with a user-friendly error message"]
+          },
+
+          "actual": {
+            "type": "string",
+            "description": "What the application actually did (the broken behaviour).",
+            "minLength": 1,
+            "examples": ["HTTP 500 Internal Server Error with a Java stack trace"]
+          },
+
+          "severity": {
+            "type": "string",
+            "description": "Business impact of the bug. CRITICAL = app unusable or security risk, LOW = cosmetic.",
+            "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+          },
+
+          "status": {
+            "type": "string",
+            "description": "Current lifecycle state of the bug.",
+            "enum": ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]
+          },
+
+          "notes": {
+            "type": "string",
+            "description": "Optional. Workarounds, PR links, environment details, or any extra context.",
+            "examples": ["Fix in review on PR #88. Regression since v2.4.1."]
+          }
+
+        }
+      }
+    }
+
+  }
+}

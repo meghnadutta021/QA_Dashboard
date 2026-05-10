@@ -1,0 +1,17 @@
+# Compiled output — Maven builds into target/; never commit these
+target/
+
+# IDE project files
+.idea/
+*.iml
+.vscode/
+
+# macOS metadata files created by Finder
+.DS_Store
+
+# Spring Boot dev-tools restart trigger
+.reloadtrigger
+
+# Log files
+*.log
+/logs/

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    pom.xml — Project Object Model
+    ================================
+    This is Maven's configuration file. Think of it as a "recipe card" for your project.
+    Maven reads this file to know:
+      - What your project is called
+      - Which Java version to use
+      - Which external libraries (dependencies) to download
+      - How to build and package your application
+
+    Maven automatically downloads all dependencies from the internet (Maven Central)
+    the first time you build. You never need to download JAR files manually.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        PARENT: Spring Boot Starter Parent
+        ===================================
+        By inheriting from spring-boot-starter-parent, you get:
+          - Sensible default Maven plugin configurations
+          - Pre-tested, compatible versions for ALL Spring libraries
+          - You don't have to specify versions for most Spring dependencies —
+            the parent already knows which versions work together.
+        Think of it as a "recommended bundle" from the Spring team.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.5</version>
+        <relativePath/> <!-- Tells Maven to fetch this from the internet, not locally -->
+    </parent>
+
+    <!--
+        PROJECT COORDINATES
+        ====================
+        groupId    : Your organisation's reverse domain name (like a package name for the project)
+        artifactId : The name of this specific project/module
+        version    : Current version. SNAPSHOT means "still in development"
+        packaging  : jar = build a runnable JAR file (Spring Boot apps are self-contained JARs)
+    -->
+    <groupId>com.qa</groupId>
+    <artifactId>qa-dashboard</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>QA Dashboard</name>
+    <description>A dashboard to view QA test results and bug reports</description>
+
+    <!--
+        PROPERTIES
+        ===========
+        Global variables used throughout this pom.xml.
+        java.version tells the Spring parent which Java to compile with.
+    -->
+    <properties>
+        <!-- Target Java 21 bytecode for broad compatibility.
+             The build runs on Java 25 but the output is compatible with Java 21+. -->
+        <java.version>21</java.version>
+
+        <!-- Override the Lombok version managed by the Spring Boot parent.
+             Lombok 1.18.40+ added Java 25 support (TypeTag API changes in JDK 25).
+             Spring Boot 3.3.5 ships with an older Lombok version that fails on JDK 25.
+             Pinning 1.18.46 (latest stable) here forces Maven to use this version instead. -->
+        <lombok.version>1.18.46</lombok.version>
+    </properties>
+
+    <!--
+        DEPENDENCIES
+        =============
+        Each <dependency> is an external library your code needs.
+        Maven downloads them automatically from Maven Central (repo.maven.apache.org).
+
+        The <scope> tag controls WHEN a dependency is available:
+          - (no scope / default) = available everywhere: compile, test, and at runtime
+          - runtime             = not needed to compile, but needed to run the app
+          - test                = only for running tests, not included in final JAR
+    -->
+    <dependencies>
+
+        <!--
+            1. spring-boot-starter-web
+            ===========================
+            WHY: This is the core of your web application.
+            It bundles together everything needed to handle HTTP requests:
+              - Spring MVC (routes URLs to your Java methods)
+              - An embedded Tomcat server (so you don't need to install a separate server)
+              - Jackson (for automatic JSON serialisation in REST endpoints)
+            Without this, your app would have no web server at all.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--
+            2. spring-boot-starter-freemarker
+            ===================================
+            WHY: FreeMarker is a "template engine" — it lets you write HTML files with
+            placeholders like ${title} that Spring fills in with real data at runtime.
+            This is how your dashboard pages will be rendered:
+              Controller (Java) → passes data → FreeMarker template → final HTML → browser
+            Without a template engine you would have to build HTML strings manually in Java,
+            which is messy and error-prone.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+
+        <!--
+            3. jackson-databind
+            ====================
+            WHY: Jackson is Java's most popular JSON library.
+            It converts ("deserialises") JSON text files into Java objects and back again.
+            Your QA data lives in JSON files on disk; Jackson reads those files and
+            turns them into Java objects that your controller can work with.
+            spring-boot-starter-web already includes Jackson, but declaring it explicitly
+            here makes the dependency clear and gives you full control over the version.
+        -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <!-- Version is managed by the Spring Boot parent — no need to specify -->
+        </dependency>
+
+        <!--
+            4. lombok
+            ==========
+            WHY: Lombok is a code-generation tool that eliminates Java boilerplate.
+            Normally a simple data class needs: constructors, getters, setters, toString,
+            equals, hashCode — dozens of lines of repetitive code.
+            With Lombok annotations like @Data or @Getter, it generates all of that
+            automatically at compile time. You write 5 lines instead of 50.
+            <scope>annotationProcessor</scope> tells Maven that Lombok runs at compile time
+            only and is not needed in the final JAR.
+        -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional> <!-- Not included in final packaged JAR -->
+        </dependency>
+
+        <!--
+            5. spring-boot-devtools
+            ========================
+            WHY: DevTools makes development faster by:
+              - Automatically restarting the app when you change a .java file
+              - Disabling template caching so FreeMarker changes appear instantly
+              - Enabling useful development-time settings automatically
+            It is a development-only convenience tool. The <optional>true</optional>
+            tag ensures it is NOT bundled when you build for production — it won't
+            accidentally slow down your production server.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+            6. spring-boot-starter-test
+            ============================
+            WHY: Provides JUnit 5, Mockito, and Spring test utilities so you can
+            write automated tests for your application.
+            <scope>test</scope> means this library is only used when running tests
+            (mvn test) and is never included in your runnable JAR.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!--
+        BUILD PLUGINS
+        ==============
+        Plugins extend Maven's build process.
+        spring-boot-maven-plugin packages your app as a single "fat JAR" that
+        contains all dependencies, so you can run it with: java -jar qa-dashboard.jar
+        The <excludes> block strips Lombok from the final JAR (it was only needed at compile time).
+    -->
+    <build>
+        <plugins>
+
+            <!--
+                maven-compiler-plugin
+                ======================
+                Controls how Java source code is compiled.
+                We add an <annotationProcessorPaths> block to tell the compiler
+                to run Lombok BEFORE compiling, so that all the @Data-generated
+                getters/setters exist by the time the rest of the code is compiled.
+                Without this, the compiler sees calls to getTcId(), getStatus(), etc.
+                but doesn't know those methods exist — Lombok hasn't run yet.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <!-- Version is inherited from spring-boot-starter-parent -->
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

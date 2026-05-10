@@ -1,0 +1,111 @@
+{
+  "_comment": "This is a SAMPLE QA report. Delete this _comment key before uploading.",
+
+  "meta": {
+    "report_id":   "login-web-20260510",
+    "product":     "vantagefitness",
+    "platform":    "web",
+    "module":      "login",
+    "date":        "20260510",
+    "environment": "staging",
+    "tester":      "Meghna Dutta"
+  },
+
+  "test_cases": [
+
+    {
+      "tc_id":        "TC-LOGIN-001",
+      "scenario":     "User Authentication",
+      "title":        "Successful login with valid credentials",
+      "precondition": "A user account exists with email tester@vantagefitness.com",
+      "steps": [
+        "Navigate to /login",
+        "Enter email: tester@vantagefitness.com",
+        "Enter password: ValidPass@123",
+        "Click the 'Sign In' button"
+      ],
+      "expected": "User is redirected to the dashboard and a welcome banner appears",
+      "actual":   "User was redirected to the dashboard and welcome banner appeared",
+      "priority": "P1",
+      "status":   "PASS",
+      "notes":    ""
+    },
+
+    {
+      "tc_id":        "TC-LOGIN-002",
+      "scenario":     "User Authentication",
+      "title":        "Login fails with an invalid password",
+      "precondition": "A user account exists with email tester@vantagefitness.com",
+      "steps": [
+        "Navigate to /login",
+        "Enter email: tester@vantagefitness.com",
+        "Enter password: WrongPassword999",
+        "Click the 'Sign In' button"
+      ],
+      "expected": "An inline error message 'Invalid email or password' is displayed and the user stays on the login page",
+      "actual":   "The server returns HTTP 500 Internal Server Error instead of a validation message",
+      "priority": "P1",
+      "status":   "FAIL",
+      "notes":    "Reproducible 100% of the time on Chrome 124 and Firefox 125"
+    },
+
+    {
+      "tc_id":        "TC-LOGIN-003",
+      "scenario":     "Session Management",
+      "title":        "Remember me persists the session across a browser restart",
+      "precondition": "A user account exists. Browser cookies are enabled.",
+      "steps": [
+        "Navigate to /login",
+        "Enter valid credentials",
+        "Tick the 'Remember me' checkbox",
+        "Click 'Sign In'",
+        "Close the browser completely",
+        "Reopen the browser and navigate back to the app"
+      ],
+      "expected": "The user is still logged in without being prompted to re-authenticate",
+      "actual":   "Not tested this run — deferred to next sprint due to pending cookie-policy changes",
+      "priority": "P2",
+      "status":   "SKIP",
+      "notes":    "Blocked by Sprint 14 cookie-policy ticket #1892. Will re-test in Sprint 15."
+    }
+
+  ],
+
+  "bugs": [
+
+    {
+      "bug_id":      "BUG-LOGIN-001",
+      "tc_id":       "TC-LOGIN-002",
+      "title":       "Login endpoint returns HTTP 500 on invalid password instead of 401",
+      "description": "When a user submits an incorrect password, the authentication service throws an unhandled exception that propagates as a 500 Internal Server Error. The full Java stack trace is exposed in the response body, which is both a UX failure and a potential security risk.",
+      "steps": [
+        "Navigate to /login",
+        "Enter a valid email and an intentionally wrong password",
+        "Submit the form",
+        "Inspect the HTTP response in the browser developer tools"
+      ],
+      "expected": "HTTP 401 Unauthorised with a JSON body: { \"error\": \"Invalid email or password\" }",
+      "actual":   "HTTP 500 Internal Server Error — full Java stack trace visible in the response body",
+      "severity": "CRITICAL",
+      "status":   "OPEN",
+      "notes":    "Stack trace exposes internal class names and file paths. Treat as a security issue."
+    },
+
+    {
+      "bug_id":      "BUG-LOGIN-002",
+      "tc_id":       "TC-LOGIN-001",
+      "title":       "Welcome banner displays user database ID instead of display name",
+      "description": "After a successful login, the dashboard header shows the numeric database primary key (e.g. 'Welcome, 10042') instead of the user's human-readable display name (e.g. 'Welcome, Meghna Dutta'). This was introduced in release v2.4.1.",
+      "steps": [
+        "Log in with any valid credentials",
+        "Observe the welcome banner in the top-right area of the dashboard"
+      ],
+      "expected": "Banner reads 'Welcome, [display name]' — e.g. 'Welcome, Meghna Dutta'",
+      "actual":   "Banner reads 'Welcome, 10042' (the user's numeric database ID)",
+      "severity": "MEDIUM",
+      "status":   "IN_PROGRESS",
+      "notes":    "Fix is in code review on PR #88. Regression introduced in v2.4.1 when the user-profile service was refactored."
+    }
+
+  ]
+}
