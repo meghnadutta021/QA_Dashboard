@@ -13,6 +13,18 @@ Test reports are stored as plain JSON files on your machine — no database requ
 |------|---------|-------|
 | Java | 21 or later | `java -version` |
 | Maven | 3.8 or later | `mvn -version` |
+| Node.js | 18 or later | `node -v` |
+
+Install Node.js from https://nodejs.org (choose the LTS version).
+
+### One-time setup (first clone only)
+
+```bash
+# From the project root directory (where package.json lives)
+npm install
+```
+
+This downloads Tailwind CSS and its tools into `node_modules/`. You only need to run this once.
 
 ### Run the application
 
@@ -21,8 +33,9 @@ Test reports are stored as plain JSON files on your machine — no database requ
 mvn spring-boot:run
 ```
 
-The first run downloads dependencies from Maven Central (~30 seconds).
-Subsequent runs start in under 5 seconds.
+Maven automatically runs `npm install` and `npm run build:css` before starting,
+so your CSS is always up to date. The first run downloads all dependencies (~60 seconds).
+Subsequent runs start in under 10 seconds.
 
 ### Open the dashboard
 
@@ -33,6 +46,48 @@ http://localhost:8080
 ```
 
 To stop the application, press `Ctrl + C` in the terminal.
+
+---
+
+## CSS Development Workflow
+
+Tailwind CSS is now built locally instead of loaded from a CDN. Here is what that means day-to-day.
+
+### What is a build step?
+
+When you edit a `.ftlh` template and add a new Tailwind class (e.g. `mt-8`), that class does not
+automatically appear in your CSS. Tailwind needs to **scan your templates** and regenerate `output.css`
+to include the new class. This scan is the "build step".
+
+### Development: watch mode (recommended)
+
+Open **two terminals** side by side:
+
+**Terminal 1 — CSS watcher** (rebuilds CSS automatically on every template save):
+```bash
+npm run watch:css
+```
+
+**Terminal 2 — Spring Boot**:
+```bash
+mvn spring-boot:run
+```
+
+With the watcher running, edit any `.ftlh` file, save it, then refresh your browser — the new styles
+appear immediately without restarting Spring Boot.
+
+### One-off CSS build
+
+If you only need to rebuild the CSS once (e.g. before committing):
+```bash
+npm run build:css
+```
+
+### Maven build (includes CSS automatically)
+
+When you run `mvn spring-boot:run` or `mvn package`, the `frontend-maven-plugin` in `pom.xml`
+runs `npm install` and `npm run build:css` automatically. You do not need to run the CSS build
+separately for a full Maven build.
 
 ---
 
@@ -297,7 +352,8 @@ All settings are in `src/main/resources/application.properties`:
 | Framework | Spring Boot 3.3.5 |
 | Language | Java 21 |
 | Template engine | FreeMarker |
-| Styling | Tailwind CSS (Play CDN) |
+| Styling | Tailwind CSS (local build) |
+| CSS build | Node.js + PostCSS + Autoprefixer |
 | JSON parsing | Jackson Databind |
 | Build tool | Maven |
 | Boilerplate reduction | Lombok |

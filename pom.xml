@@ -215,6 +215,84 @@
                 </configuration>
             </plugin>
 
+            <!--
+                frontend-maven-plugin
+                =====================
+                WHAT IS A BUILD STEP?
+                Tailwind CSS cannot serve styles directly from source. It needs a
+                build step: a command that scans your .ftlh templates, finds every
+                Tailwind class you used, and writes a minified output.css file.
+                Without it, the browser gets an empty stylesheet and the app looks unstyled.
+
+                WHAT THIS PLUGIN DOES:
+                When you run "mvn spring-boot:run" or "mvn package", Maven
+                automatically runs three steps before compiling your Java code:
+                  1. Downloads a project-local copy of Node.js into target/node/
+                     (does not affect or require a system-wide Node.js installation)
+                  2. Runs "npm install" to download Tailwind and PostCSS into node_modules/
+                  3. Runs "npm run build:css" to generate src/.../static/css/output.css
+
+                FOR DEVELOPMENT (faster CSS iteration):
+                  Run "npm run watch:css" in a separate terminal while Spring Boot is running.
+                  It rebuilds output.css automatically every time you edit a .ftlh file,
+                  then just refresh the browser to see the change.
+            -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.15.0</version>
+
+                <configuration>
+                    <!-- Node.js and npm versions to download into target/node/.
+                         These are isolated to this project and do not touch your system. -->
+                    <nodeVersion>v20.11.0</nodeVersion>
+                    <npmVersion>10.2.4</npmVersion>
+                </configuration>
+
+                <executions>
+
+                    <!--
+                        Step 1 — Download Node.js + npm
+                        Runs once; subsequent builds reuse the cached copy in target/node/.
+                    -->
+                    <execution>
+                        <id>install-node-and-npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+
+                    <!--
+                        Step 2 — npm install
+                        Downloads tailwindcss, postcss, and autoprefixer into node_modules/.
+                        Equivalent to running `npm install` in your terminal.
+                    -->
+                    <execution>
+                        <id>npm-install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <!-- "npm" goal with no <arguments> defaults to `npm install` -->
+                    </execution>
+
+                    <!--
+                        Step 3 — Build CSS
+                        Runs `npm run build:css` which calls the Tailwind CLI to scan
+                        all .ftlh templates and write a minified output.css.
+                    -->
+                    <execution>
+                        <id>npm-build-css</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build:css</arguments>
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

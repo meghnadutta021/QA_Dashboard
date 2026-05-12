@@ -15,3 +15,11 @@ target/
 # Log files
 *.log
 /logs/
+
+# Node.js build tooling (Tailwind CSS build pipeline)
+node_modules/   # npm packages — reinstalled by `npm install`
+node/           # project-local Node.js downloaded by frontend-maven-plugin
+
+# Generated CSS — rebuilt automatically by `npm run build:css` or Maven.
+# Do not commit this file; it is always regenerated from input.css + templates.
+src/main/resources/static/css/output.css
