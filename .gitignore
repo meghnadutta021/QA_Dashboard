@@ -1,25 +1,28 @@
-# Compiled output — Maven builds into target/; never commit these
-target/
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# IDE project files
-.idea/
-*.iml
-.vscode/
+# Build outputs
+dist/
+.astro/
 
-# macOS metadata files created by Finder
+# Logs
+npm-debug.log*
+yarn-debug.log*
+
+# OS
 .DS_Store
+Thumbs.db
 
-# Spring Boot dev-tools restart trigger
-.reloadtrigger
+# Editor
+.vscode/
+.idea/
+*.swp
 
-# Log files
-*.log
-/logs/
+# Environment
+.env
+.env.local
 
-# Node.js build tooling (Tailwind CSS build pipeline)
-node_modules/   # npm packages — reinstalled by `npm install`
-node/           # project-local Node.js downloaded by frontend-maven-plugin
-
-# Generated CSS — rebuilt automatically by `npm run build:css` or Maven.
-# Do not commit this file; it is always regenerated from input.css + templates.
-src/main/resources/static/css/output.css
+# Claude Code
+.claude/
